@@ -105,15 +105,8 @@ func (s *byPodSolver) solve(session *framework.Session, scenario *scenario.ByNod
 func (s *byPodSolver) runSimulation(
 	session *framework.Session, scenario *scenario.ByNodeScenario, statement *framework.Statement,
 	victimTasks []*pod_info.PodInfo, nodes []*node_info.NodeInfo) *solutionResult {
-	pendingJob := scenario.GetPreemptor()
-	nextTaskToFindAllocation := scenario.PendingTasks()[len(scenario.PendingTasks())-1]
-
-	successfulSimulation, solutionVictims, err :=
+	successfulSimulation, solutionVictims :=
 		s.tryScenarioWithEvictedVictims(session, scenario, statement, victimTasks, nodes)
-
-	if err != nil {
-		return handleSolveError(pendingJob, nextTaskToFindAllocation, err, statement)
-	}
 	if successfulSimulation {
 		return s.handleScenarioSolution(scenario, statement, solutionVictims)
 	}
@@ -165,7 +158,7 @@ func (s *byPodSolver) handleScenarioSolution(
 }
 
 func (s *byPodSolver) tryScenarioWithEvictedVictims(ssn *framework.Session, scenario *scenario.ByNodeScenario,
-	statement *framework.Statement, victimTasks []*pod_info.PodInfo, nodes []*node_info.NodeInfo) (bool, *simulationVictims, error) {
+	statement *framework.Statement, victimTasks []*pod_info.PodInfo, nodes []*node_info.NodeInfo) (bool, *simulationVictims) {
 	pendingJob := scenario.GetPreemptor()
 
 	jobsToAllocate := common.GetJobsToAllocate(ssn, victimTasks, pendingJob)
@@ -174,7 +167,7 @@ func (s *byPodSolver) tryScenarioWithEvictedVictims(ssn *framework.Session, scen
 			jobsToAllocate, victimTasks)
 
 	if !isSuccessfulAllocations {
-		return false, nil, nil
+		return false, nil
 	}
 	actualVictims := newCalculatedVictimsStruct()
 	for _, victimTask := range victimTasks {
@@ -185,7 +178,7 @@ func (s *byPodSolver) tryScenarioWithEvictedVictims(ssn *framework.Session, scen
 			actualVictims.pipelinedVictims = append(actualVictims.pipelinedVictims, victimTask)
 		}
 	}
-	return isSuccessfulAllocations, actualVictims, nil
+	return isSuccessfulAllocations, actualVictims
 }
 
 func getVictimJobsFromVictimTasks(
