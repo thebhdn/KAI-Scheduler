@@ -134,6 +134,16 @@ func ParsePreemptionDelay(value string) (*metav1.Duration, error) {
 	return &metav1.Duration{Duration: delay}, nil
 }
 
+// ParseStalenessGracePeriod parses a staleness grace period string (e.g. "-10s" "30s", "5m").
+// Returns an error for invalid values.
+func ParseStalenessGracePeriod(value string) (*metav1.Duration, error) {
+	stale, err := time.ParseDuration(value)
+	if err != nil {
+		return nil, err
+	}
+	return &metav1.Duration{Duration: stale}, nil
+}
+
 type SubGroup struct {
 	// Name uniquely identifies the SubGroup within the PodGroup.
 	// Must be a valid DNS label (RFC 1123).

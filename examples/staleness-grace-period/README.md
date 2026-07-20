@@ -11,19 +11,13 @@ the stale pod.
 
 ## Steps
 
-### 1. Create the namespace
+### 1. Apply the manifests
 
 ```bash
-kubectl apply -f 00-podgroup.yaml
+kubectl apply -f 00-with-spec.yaml
 ```
 
-### 2. Create 2 pods (gang-satisfied)
-
-```bash
-kubectl apply -f 01-pods.yaml
-```
-
-This creates the PodGroup (`minMember: 2`) and both pods in a single manifest file.
+This command creates PodGroup and pods to satisfy (`minMember: 2`).
 
 Verify all pods are running:
 
@@ -33,7 +27,7 @@ kubectl get pods -n stale-grace-demo
 
 Expected: both pods in `Running` status, podgroup in `Running` status.
 
-### 3. Simulate a pod failure (triggers staleness)
+### 2. Simulate a pod failure (triggers staleness)
 
 Delete one pod to simulate a failure:
 
@@ -49,7 +43,7 @@ Verify:
 kubectl get podgroup -n stale-grace-demo -o yaml | grep -A5 "staleness"
 ```
 
-### 4. Wait for the grace period to expire
+### 3. Wait for the grace period to expire
 
 After 30 seconds, the stalegangeviction action evicts the remaining running pod:
 
@@ -58,6 +52,17 @@ kubectl get pods -n stale-grace-demo
 ```
 
 Expected: all pods in `Terminating` or `Terminated` status.
+
+### 4. (Alternative) Use pod annotations instead of PodGroup spec
+
+Apply the annotation-based example:
+
+```bash
+kubectl apply -f 01-with-annotation.yaml
+```
+
+This creates pods with `kai.scheduler/staleness-grace-period: "30s"` annotations.
+KAI's PodGrouper will take care of creating PodGroup and setting stalenessGracePeriod.
 
 ## Key points
 

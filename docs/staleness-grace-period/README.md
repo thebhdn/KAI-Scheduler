@@ -10,6 +10,10 @@ A podgroup becomes stale when it has running pods but the gang condition is no l
 
 ## API
 
+You can configure the grace period via two methods:
+
+### 1. PodGroup spec
+
 Set the grace period on a workload that creates a PodGroup:
 
 ```yaml
@@ -17,6 +21,18 @@ apiVersion: scheduling.run.ai/v2alpha2
 kind: PodGroup
 spec:
   stalenessGracePeriod: 1m
+```
+
+### 2. Annotation
+
+Set the annotation `kai.scheduler/staleness-grace-period` on the PodGroup, a parent resource, or individual pods:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kai.scheduler/staleness-grace-period: "1m"
 ```
 
 The value is a Go duration (`"30s"`, `"5m"`, `"1h"`). Invalid values cause the field to be ignored. Negative values disable stale eviction for the podgroup entirely. Missing field uses the scheduler's global default (configurable via `globalDefaultStalenessGracePeriod` in the scheduler config, default is 60s).
